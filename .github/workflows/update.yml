@@ -1,0 +1,27 @@
+name: Update F-Droid Repo
+on:
+  workflow_dispatch:
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install fdroidserver
+        run: pip install fdroidserver
+      - name: Update repo
+        run: |
+          mkdir -p repo
+          cp -f *.apk repo/ || true
+          cd repo
+          if [ ! -f config.yml ]; then
+            fdroid init || true
+          fi
+          printf "fdroidpass\nfdroidpass\nRoci\nRoci\nRoci\nRoci\nRoci\nRoci\nyes\n" | fdroid update --create-key || true
+          fdroid update
+      - name: Commit index
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add repo/
+          git commit -m "Update F-Droid index" || true
+          git push || true
